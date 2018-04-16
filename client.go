@@ -12,16 +12,13 @@ import (
 	"github.com/btcsuite/btcd/rpcclient"
 )
 
-var (
-	httpClient *http.Client
-)
-
 // Client ...
 type Client struct {
 	*rpcclient.Client
-	User     string
-	Password string
-	URL      string
+	httpClient *http.Client
+	User       string
+	Password   string
+	URL        string
 }
 
 // New return new rpc client
@@ -38,7 +35,7 @@ func New(connect string, port int, user, password string) (*Client, error) {
 	if err != nil {
 		return nil, err
 	}
-	return &Client{c, user, password, fmt.Sprintf("http://%s:%d", connect, port)}, nil
+	return &Client{c, &http.Client{}, user, password, fmt.Sprintf("http://%s:%d", connect, port)}, nil
 }
 
 // OmniGettransaction ...
@@ -128,7 +125,7 @@ func (c *Client) sendRequest(jReq *jsonRequest) ([]byte, error) {
 }
 
 func (c *Client) sendPostRequest(httpReq *http.Request, jReq *jsonRequest) ([]byte, error) {
-	httpResponse, err := httpClient.Do(httpReq)
+	httpResponse, err := c.httpClient.Do(httpReq)
 	if err != nil {
 		return nil, err
 	}
